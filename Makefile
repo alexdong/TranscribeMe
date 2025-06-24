@@ -1,4 +1,4 @@
-.PHONY: help install test lint format check clean
+.PHONY: help install test lint format check clean dev
 
 help: ## Show this help message
 	@echo "Available commands:"
@@ -6,6 +6,9 @@ help: ## Show this help message
 
 install: ## Install dependencies
 	uv sync --dev
+
+dev: ## Start development server
+	uv run python -m transcribe_me.main
 
 test: ## Run tests
 	uv run pytest
