@@ -15,7 +15,7 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone git@github.com:alexdong/TranscribeMe.git
 cd TranscribeMe
 
 # Install dependencies
