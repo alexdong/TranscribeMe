@@ -67,6 +67,7 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
 - uv (install from https://docs.astral.sh/uv/getting-started/installation/)
 - Twilio Account (for phone/SMS services)
 - OpenAI API Key (for transcription and formatting)
+- Flask or FastAPI (for web server)
 
 ### Installation
 
