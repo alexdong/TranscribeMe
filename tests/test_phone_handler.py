@@ -12,29 +12,27 @@ class TestPhoneHandler:
         """Set up test fixtures."""
         self.phone_handler = PhoneHandler()
 
-    def test_is_mobile_number_valid_us(self):
-        """Test mobile number validation for US numbers."""
-        assert self.phone_handler.is_mobile_number("+15551234567")
-        assert self.phone_handler.is_mobile_number("+1 555 123 4567")
-        assert self.phone_handler.is_mobile_number("+1-555-123-4567")
-
-    def test_is_mobile_number_valid_uk(self):
-        """Test mobile number validation for UK numbers."""
-        assert self.phone_handler.is_mobile_number("+447123456789")
-        assert self.phone_handler.is_mobile_number("+44 7123 456789")
+    def test_is_mobile_number_valid_nz(self):
+        """Test mobile number validation for NZ numbers."""
+        assert self.phone_handler.is_mobile_number("+64210822348")
+        assert self.phone_handler.is_mobile_number("+64 21 082 2348")
+        assert self.phone_handler.is_mobile_number("+64-21-082-2348")
+        assert self.phone_handler.is_mobile_number("+64211234567")
+        assert self.phone_handler.is_mobile_number("+64271234567")
+        assert self.phone_handler.is_mobile_number("+64221234567")
 
     def test_is_mobile_number_invalid(self):
         """Test mobile number validation for invalid numbers."""
-        assert not self.phone_handler.is_mobile_number(
-            "+33123456789"
-        )  # France not in allowed
-        assert not self.phone_handler.is_mobile_number("5551234567")  # No country code
-        assert not self.phone_handler.is_mobile_number("+1555")  # Too short
+        assert not self.phone_handler.is_mobile_number("+15551234567")  # US not allowed
+        assert not self.phone_handler.is_mobile_number("+447123456789")  # UK not allowed
+        assert not self.phone_handler.is_mobile_number("+33123456789")  # France not allowed
+        assert not self.phone_handler.is_mobile_number("0210822348")  # No country code
+        assert not self.phone_handler.is_mobile_number("+64123456")  # Too short
 
     def test_handle_incoming_call_valid_mobile(self):
-        """Test handling incoming call from valid mobile number."""
+        """Test handling incoming call from valid NZ mobile number."""
         response = self.phone_handler.handle_incoming_call(
-            "+15551234567", "test_call_sid"
+            "+64210822348", "test_call_sid"
         )
 
         # Check that response contains expected TwiML elements
@@ -52,7 +50,7 @@ class TestPhoneHandler:
         # Check that response rejects the call
         response_str = str(response)
         assert (
-            "Sorry, this service is only available for mobile phone numbers"
+            "Sorry, this service is only available for New Zealand mobile phone numbers"
             in response_str
         )
         assert "<Hangup" in response_str
@@ -68,7 +66,7 @@ class TestPhoneHandler:
         # Create new handler with mocked client
         handler = PhoneHandler()
 
-        result = handler.send_sms("+15551234567", "Test message")
+        result = handler.send_sms("+64210822348", "Test message")
 
         assert result is True
 
@@ -81,6 +79,6 @@ class TestPhoneHandler:
         # Create new handler with mocked client
         handler = PhoneHandler()
 
-        result = handler.send_sms("+15551234567", "Test message")
+        result = handler.send_sms("+64210822348", "Test message")
 
         assert result is False

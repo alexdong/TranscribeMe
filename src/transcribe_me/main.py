@@ -38,15 +38,21 @@ async def root():
     return {
         "service": "TranscribeMe",
         "version": "0.1.0",
-        "description": "Phone-based transcription service",
+        "description": "Phone-based transcription service for New Zealand mobile numbers",
         "phone_number": settings.twilio_phone_number,
+        "supported_countries": settings.allowed_country_codes
     }
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "timestamp": datetime.utcnow()}
+    return {
+        "status": "healthy", 
+        "timestamp": datetime.utcnow(),
+        "version": "0.1.0",
+        "environment": "development" if settings.debug else "production"
+    }
 
 
 @app.post("/webhook/voice")
@@ -63,9 +69,10 @@ async def handle_voice_webhook(
     # Generate TwiML response for the call
     twiml_response = phone_handler.handle_incoming_call(From, CallSid)
 
-    # Store call record
+    # Store call record (use enum, not the string parameter)
+    from .models import CallStatus as CallStatusEnum
     call_records[CallSid] = CallRecord(
-        call_sid=CallSid, from_number=From, to_number=To, status=CallStatus.RECORDING
+        call_sid=CallSid, from_number=From, to_number=To, status=CallStatusEnum.RECORDING
     )
 
     return PlainTextResponse(str(twiml_response), media_type="application/xml")

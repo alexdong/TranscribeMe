@@ -24,11 +24,15 @@ class Settings(BaseSettings):
     max_call_duration_seconds: int = 300
 
     # Phone Number Validation
-    allowed_country_codes: list[str] = ["+1", "+44", "+61"]
+    allowed_country_codes: list[str] = ["+64"]  # New Zealand only
 
     # Development Settings
     debug: bool = True
     log_level: str = "INFO"
+    console_log_level: str = "DEBUG"  # Console always at debug level
+
+    # Test Configuration
+    test_mobile_number: str = "+64210822348"  # For SMS testing
 
     model_config = {"env_file": ".env", "case_sensitive": False}
 

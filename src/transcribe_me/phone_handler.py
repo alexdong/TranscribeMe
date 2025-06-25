@@ -39,9 +39,16 @@ class PhoneHandler:
         # Check if it starts with allowed country codes
         for country_code in settings.allowed_country_codes:
             if clean_number.startswith(country_code):
-                # Basic validation - mobile numbers are typically longer than landlines
-                # This is a simplified check - in production, you'd use a proper phone validation service
-                return len(clean_number) >= 10
+                # For NZ (+64), mobile numbers start with 2 (021, 022, 027, 029)
+                if country_code == "+64":
+                    # Remove country code and check mobile prefix
+                    number_without_country = clean_number[3:]  # Remove +64
+                    if len(number_without_country) >= 8:  # At least 8 digits after +64
+                        # Check if it starts with mobile prefixes (2x)
+                        return number_without_country.startswith(('21', '22', '27', '29'))
+                else:
+                    # For other countries, basic length check
+                    return len(clean_number) >= 10
 
         return False
 
@@ -60,10 +67,13 @@ class PhoneHandler:
 
         # Validate that it's a mobile number
         if not self.is_mobile_number(from_number):
-            logger.warning(f"Rejected call from non-mobile number: {from_number}")
+            logger.warning(f"REJECTED CALL from non-NZ mobile number: {from_number}")
+            logger.debug(
+                f"Number {from_number} does not match allowed country codes: {settings.allowed_country_codes}"
+            )
             response.say(
-                "Sorry, this service is only available for mobile phone numbers. "
-                "Please call from a mobile device.",
+                "Sorry, this service is only available for New Zealand mobile phone numbers. "
+                "Please call from a New Zealand mobile device.",
                 voice="alice",
             )
             response.hangup()
@@ -77,12 +87,13 @@ class PhoneHandler:
             status=CallStatus.RECORDING,
         )
 
-        # TODO: Store call record in database
-        logger.info(f"Starting call recording for {from_number} (SID: {call_sid})")
+        logger.info(f"ACCEPTED CALL from NZ mobile: {from_number} (SID: {call_sid})")
+        logger.debug(f"Call validation passed for {from_number}")
 
         # Greet the caller and start recording
         response.say(
-            "Welcome to TranscribeMe! Please speak your message after the beep. "
+            "Welcome to TranscribeMe! This service is for New Zealand mobile numbers. "
+            "Please speak your message after the beep. "
             "Your call will be transcribed and sent to you via text message. "
             "You have up to 5 minutes.",
             voice="alice",
@@ -119,13 +130,21 @@ class PhoneHandler:
             True if SMS was sent successfully
         """
         try:
-            message = self.client.messages.create(
+            logger.info(f"SENDING SMS to {to_number}")
+            logger.debug(f"SMS content length: {len(message)} characters")
+            logger.debug(f"SMS preview: {message[:100]}...")
+
+            sms_message = self.client.messages.create(
                 body=message, from_=settings.twilio_phone_number, to=to_number
             )
-            logger.info(f"SMS sent to {to_number}: {message.sid}")
+            logger.info(f"SMS SENT successfully to {to_number}: {sms_message.sid}")
+            logger.debug(
+                f"SMS details - SID: {sms_message.sid}, Status: {sms_message.status}"
+            )
             return True
         except Exception as e:
-            logger.error(f"Failed to send SMS to {to_number}: {e}")
+            logger.error(f"SMS FAILED to {to_number}: {e}")
+            logger.debug(f"SMS error details: {type(e).__name__}: {e}")
             return False
 
     def get_recording_url(self, call_sid: str) -> str | None:
