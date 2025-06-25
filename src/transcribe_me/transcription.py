@@ -1,9 +1,7 @@
 """Transcription and AI formatting services."""
 
 import logging
-from typing import Optional
 
-import openai
 from openai import OpenAI
 
 from .config import settings
@@ -19,19 +17,20 @@ class TranscriptionService:
         """Initialize OpenAI client."""
         self.client = OpenAI(api_key=settings.openai_api_key)
 
-    async def transcribe_audio(self, audio_url: str) -> Optional[str]:
+    async def transcribe_audio(self, audio_url: str) -> str | None:
         """
         Transcribe audio from URL using OpenAI Whisper.
-        
+
         Args:
             audio_url: URL to the audio file
-            
+
         Returns:
             Transcribed text or None if failed
         """
         try:
             # Download audio file
             import httpx
+
             async with httpx.AsyncClient() as client:
                 response = await client.get(audio_url)
                 response.raise_for_status()
@@ -39,6 +38,7 @@ class TranscriptionService:
 
             # Save temporarily for Whisper API
             import tempfile
+
             with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
                 temp_file.write(audio_data)
                 temp_file_path = temp_file.name
@@ -46,13 +46,12 @@ class TranscriptionService:
             # Transcribe using Whisper
             with open(temp_file_path, "rb") as audio_file:
                 transcript = self.client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_file,
-                    response_format="text"
+                    model="whisper-1", file=audio_file, response_format="text"
                 )
 
             # Clean up temp file
             import os
+
             os.unlink(temp_file_path)
 
             logger.info(f"Successfully transcribed audio from {audio_url}")
@@ -65,11 +64,11 @@ class TranscriptionService:
     def format_transcript(self, raw_text: str, format_type: TranscriptFormat) -> str:
         """
         Format raw transcript using AI.
-        
+
         Args:
             raw_text: Raw transcribed text
             format_type: Desired formatting style
-            
+
         Returns:
             Formatted transcript
         """
@@ -89,7 +88,7 @@ class TranscriptionService:
                 "Organize into sections like Discussion Points, Decisions Made, and Action Items. "
                 "Make it professional and well-structured:\n\n"
             ),
-            TranscriptFormat.RAW: ""
+            TranscriptFormat.RAW: "",
         }
 
         if format_type == TranscriptFormat.RAW:
@@ -104,12 +103,12 @@ class TranscriptionService:
                     {
                         "role": "system",
                         "content": "You are a professional assistant that formats transcribed voice messages. "
-                                   "Always maintain the original meaning while improving clarity and structure."
+                        "Always maintain the original meaning while improving clarity and structure.",
                     },
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 max_tokens=1000,
-                temperature=0.3
+                temperature=0.3,
             )
 
             formatted_text = response.choices[0].message.content.strip()
@@ -124,11 +123,11 @@ class TranscriptionService:
     def generate_summary(self, text: str, max_length: int = 160) -> str:
         """
         Generate a short summary for SMS.
-        
+
         Args:
             text: Full transcript text
             max_length: Maximum length for SMS
-            
+
         Returns:
             Short summary
         """
@@ -142,12 +141,12 @@ class TranscriptionService:
                     {
                         "role": "system",
                         "content": f"Create a brief summary of this text in {max_length} characters or less. "
-                                   "Keep the key points and make it clear and concise."
+                        "Keep the key points and make it clear and concise.",
                     },
-                    {"role": "user", "content": text}
+                    {"role": "user", "content": text},
                 ],
                 max_tokens=50,
-                temperature=0.3
+                temperature=0.3,
             )
 
             summary = response.choices[0].message.content.strip()

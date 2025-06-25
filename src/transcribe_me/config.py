@@ -1,8 +1,5 @@
 """Configuration management for TranscribeMe service."""
 
-import os
-from typing import List
-
 from pydantic_settings import BaseSettings
 
 
@@ -27,7 +24,7 @@ class Settings(BaseSettings):
     max_call_duration_seconds: int = 300
 
     # Phone Number Validation
-    allowed_country_codes: List[str] = ["+1", "+44", "+61"]
+    allowed_country_codes: list[str] = ["+1", "+44", "+61"]
 
     # Development Settings
     debug: bool = True

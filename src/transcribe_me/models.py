@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -34,15 +33,19 @@ class CallRecord(BaseModel):
     from_number: str = Field(..., description="Caller's phone number")
     to_number: str = Field(..., description="Called number (our service)")
     status: CallStatus = Field(default=CallStatus.INITIATED)
-    recording_url: Optional[str] = Field(None, description="URL to the call recording")
-    raw_transcript: Optional[str] = Field(None, description="Raw transcription text")
-    formatted_transcript: Optional[str] = Field(None, description="AI-formatted transcript")
+    recording_url: str | None = Field(None, description="URL to the call recording")
+    raw_transcript: str | None = Field(None, description="Raw transcription text")
+    formatted_transcript: str | None = Field(
+        None, description="AI-formatted transcript"
+    )
     transcript_format: TranscriptFormat = Field(default=TranscriptFormat.NOTES)
-    transcript_id: Optional[str] = Field(None, description="Unique ID for hosted transcript")
+    transcript_id: str | None = Field(
+        None, description="Unique ID for hosted transcript"
+    )
     sms_sent: bool = Field(default=False, description="Whether SMS was sent")
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = Field(None, description="When transcript expires")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
+    expires_at: datetime | None = Field(None, description="When transcript expires")
+    error_message: str | None = Field(None, description="Error message if failed")
 
 
 class TranscriptResponse(BaseModel):
@@ -52,7 +55,7 @@ class TranscriptResponse(BaseModel):
     content: str
     format: TranscriptFormat
     created_at: datetime
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
 
 
 class WebhookRequest(BaseModel):
@@ -68,8 +71,8 @@ class VoiceWebhookRequest(WebhookRequest):
     """Model for Twilio voice webhook requests."""
 
     Direction: str
-    ForwardedFrom: Optional[str] = None
-    CallerName: Optional[str] = None
+    ForwardedFrom: str | None = None
+    CallerName: str | None = None
 
 
 class RecordingWebhookRequest(BaseModel):
